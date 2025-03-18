@@ -147,10 +147,12 @@ class DefaultInputConsumerTask(
     ) {
         val stream = reserved.value.stream
         unopenedStreams.remove(stream)?.let {
-            log.info { "Saw first record for stream $stream; initializing" }
+            log.info { "Saw first record for stream $stream; awaiting setup complete" }
+            syncManager.awaitSetupComplete()
             // Note, since we're not spilling to disk, there is nothing to do with
             // any records before initialization is complete, so we'll wait here
             // for it to finish.
+            log.info { "Setup complete, starting stream $stream" }
             openStreamQueue.publish(it)
             syncManager.getOrAwaitStreamLoader(stream)
             log.info { "Initialization for stream $stream complete" }

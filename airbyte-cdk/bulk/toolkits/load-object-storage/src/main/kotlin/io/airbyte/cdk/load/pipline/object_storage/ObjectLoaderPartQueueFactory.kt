@@ -5,6 +5,7 @@
 package io.airbyte.cdk.load.pipline.object_storage
 
 import io.airbyte.cdk.load.command.DestinationStream
+import io.airbyte.cdk.load.file.object_storage.RemoteObject
 import io.airbyte.cdk.load.message.ChannelMessageQueue
 import io.airbyte.cdk.load.message.PipelineEvent
 import io.airbyte.cdk.load.message.SinglePartitionQueueWithMultiPartitionBroadcast
@@ -23,7 +24,7 @@ data class ObjectKey(override val stream: DestinationStream.Descriptor, val obje
     WithStream
 
 @Factory
-class ObjectLoaderPartQueueFactory(
+class ObjectLoaderPartQueueFactory<T : RemoteObject<*>>(
     val loader: ObjectLoader,
     @Named("memoryManager") val memoryManager: ReservationManager,
 ) {
@@ -73,7 +74,7 @@ class ObjectLoaderPartQueueFactory(
     @Requires(bean = ObjectLoader::class)
     fun objectLoaderLoadedPartQueue():
         SinglePartitionQueueWithMultiPartitionBroadcast<
-            PipelineEvent<ObjectKey, ObjectLoaderPartLoader.PartResult>> {
+            PipelineEvent<ObjectKey, ObjectLoaderPartLoader.PartResult<T>>> {
         return SinglePartitionQueueWithMultiPartitionBroadcast(
             ChannelMessageQueue(Channel(OBJECT_LOADER_MAX_ENQUEUED_COMPLETIONS)),
             1
